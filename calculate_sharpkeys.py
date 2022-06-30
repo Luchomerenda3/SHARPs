@@ -236,7 +236,7 @@ def main():
     print('Note that the calculation for R_VALUE uses a slightly different method than applied for the hmi.sharp*_720s series. The results, however, should be identical or within a log(R) value of 0.1. ')
     print('All the other keyword calculations use an identical method, and the results are identical. ')
 
-def get_data(file_bz, file_by, file_bx, file_bz_err, file_by_err, file_bx_err, file_conf_disambig, file_bitmap, file_los):
+def get_data(file_bz, file_by, file_bx, file_bz_err, file_by_err, file_bx_err, file_conf_disambig, file_bitmap, file_los, coords=None):
 
     """function: get_data
 
@@ -296,21 +296,52 @@ def get_data(file_bz, file_by, file_bx, file_bz_err, file_by_err, file_bx_err, f
     except:
         print("Could not open the LoS fits file")
         sys.exit(1)
-    
-    # get array data
-    bz                = bz_map.data
-    by                = by_map.data
-    bx                = bx_map.data
-    bz_err            = bz_err_map.data
-    by_err            = by_err_map.data
-    bx_err            = bx_err_map.data
-    conf_disambig     = conf_disambig_map.data
-    bitmap            = bitmap_map.data
-    los               = los_map.data
 
-    # get metadata
-    header = bz_map.meta
-    
+    if coords is not None:
+        try:
+            bottom_left, top_right = coords
+            bz_submap = bz_map.submap(bottom_left=bottom_left, top_right=top_right)
+            by_submap = by_map.submap(bottom_left=bottom_left, top_right=top_right)
+            bx_submap = bx_map.submap(bottom_left=bottom_left, top_right=top_right)
+            bz_err_submap = bz_err_map.submap(bottom_left=bottom_left, top_right=top_right)
+            by_err_submap = by_map.submap(bottom_left=bottom_left, top_right=top_right)
+            bx_err_submap = bx_map.submap(bottom_left=bottom_left, top_right=top_right)
+            conf_disambig_submap = conf_disambig_map.submap(bottom_left=bottom_left, top_right=top_right)
+            bitmap_submap = bitmap_map.submap(bottom_left=bottom_left, top_right=top_right)
+            los_submap = los_map.submap(bottom_left=bottom_left, top_right=top_right)
+
+            # get array data
+            bz = bz_submap.data
+            by = by_submap.data
+            bx = bx_submap.data
+            bz_err = bz_err_submap.data
+            by_err = by_err_submap.data
+            bx_err = bx_err_submap.data
+            conf_disambig = conf_disambig_submap.data
+            bitmap = bitmap_submap.data
+            los = los_submap.data
+
+            # get metadata
+            header = bz_submap.meta
+        except:
+            print("Wrong input crop coordinates")
+            sys.exit(1)
+    else:
+        # get array data
+        bz = bz_map.data
+        by = by_map.data
+        bx = bx_map.data
+        bz_err = bz_err_map.data
+        by_err = by_err_map.data
+        bx_err = bx_err_map.data
+        conf_disambig = conf_disambig_map.data
+        bitmap = bitmap_map.data
+        los = los_map.data
+
+        # get metadata
+        header = bz_map.meta
+
+
     # get fits header key information
     rsun_ref = header['rsun_ref']
     dsun_obs = header['dsun_obs']
