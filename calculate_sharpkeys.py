@@ -324,7 +324,7 @@ def get_data(file_bz, file_by, file_bx, file_bz_err, file_by_err, file_bx_err, f
             # get metadata
             header = bz_submap.meta
         except:
-            print("Wrong input crop coordinates")
+            print("calculate_sharpkeys.getdata: Wrong crop coordinates input")
             sys.exit(1)
     else:
         # get array data
@@ -1500,5 +1500,5 @@ def greenpot(bz, nx, ny):
 
 if __name__ == "__main__":
     main()
-    
+
 __author__ = 'Monica Bobra'
