@@ -7,8 +7,7 @@ import sunpy.map
 from astropy.coordinates import SkyCoord
 from sunpy.coordinates import HeliographicCarrington, propagate_with_solar_surface
 
-import bvec2cea
-import bvecerr2cea
+from . import bvec2cea, bvecerr2cea
 from utils.lu_tools import AreaSelector, cornerl_order
 
 
@@ -45,13 +44,14 @@ def create_custom_sharp_data(
     center, nx, ny = coords
     phi_c, lambda_c = center.lon.to_value(unit.deg), center.lat.to_value(unit.deg)
 
+    print("Creating custom bp, bt, br maps...")
     bp, bt, br, hd_out = bvec2cea.bvec2cea(
         infile_fld=b_field, infile_azi=b_azi, infile_inc=b_incli,
         infile_disamb=b_disambig,
         phi_c=phi_c, lambda_c=lambda_c,
         nx=nx, ny=ny,
     )
-
+    print("Creating custom bp_err, bt_err, bp_err maps...")
     bp_err, bt_err, br_err, hd_err_out = bvecerr2cea.bvecerr2cea(
         infile_fld=b_field, infile_azi=b_azi, infile_inc=b_incli,
         infile_err_fld=b_err_field, infile_err_inc=b_err_incli, infile_err_azi=b_err_azi,
@@ -68,12 +68,13 @@ def run(b_field: str, b_azi: str, b_incli: str, b_disambig: str,
         b_err_field: str, b_err_azi: str, b_err_incli: str,
         b_cc_field_incli: str, b_cc_field_azi: str, b_cc_incli_azi: str,
         coords: tuple[SkyCoord, int, int] | None = None,
-        output_path: str = '') -> None:
+        output_path: str = '') -> tuple:
     """Create custom SHARP maps from full disk FITS set of field, azimuth, inclination & disambiguation data"""
     # If no coords input present force selection using the interactive selector
     if not coords:
         coords = get_custom_area_center_and_size(b_field)
 
+    print("Creating custom SHARP maps...")
     br, br_err, bp, bp_err, bt, bt_err, hd_out, hd_err_out = create_custom_sharp_data(
         b_field, b_azi, b_incli,
         b_disambig,
@@ -92,13 +93,16 @@ def run(b_field: str, b_azi: str, b_incli: str, b_disambig: str,
         # if no output_path let's save this in current working dir
         output_path = './'
 
-    pre_filename = f"{output_path}hmi.sharp_cea_720s.custom_harp.{hd_out['t_rec']}"
+    print('Saving custom SHARP maps...')
+    pre_filename = f"{output_path}/hmi.sharp_cea_720s.custom_harp.{hd_out['t_rec']}"
     br_map.save(pre_filename + ".Br.fits")
     bt_map.save(pre_filename + ".Bt.fits")
     bp_map.save(pre_filename + ".Bp.fits")
     br_err.save(pre_filename + ".Br_err.fits")
     bt_err.save(pre_filename + ".Bt_err.fits")
     bp_err.save(pre_filename + ".Bp_err.fits")
+
+    return br_map,bt_map,bp_map,br_err,bt_err,bp_err
 
 
 def run_series(b_field_arr: list[str], b_azi_arr: list[str], b_incli_arr: list[str], b_disambig_arr: list[str],
